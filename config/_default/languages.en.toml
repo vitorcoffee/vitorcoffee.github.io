@@ -1,0 +1,29 @@
+disabled = false
+locale = "en"
+label = "English"
+weight = 1
+title = "vitor"
+
+[params]
+  displayName = "EN"
+  isoCode = "en"
+  rtl = false
+  dateFormat = "2 January 2006"
+  # logo = "img/logo.png"
+  description = "Backend notes, write-ups, and project logs."
+  # copyright = "Copy, _right?_ :thinking_face:"
+
+  [params.author]
+    name = "vitor"
+    # email = "youremail@example.com"
+    image = "img/avatar.png"
+    imageQuality = 96
+    headline = "Backend notes from a working engineer."
+    bio = "Notes on services I run, code I read, and the occasional detour."
+    links = [
+      { github = "https://github.com/vitorcoffee" },
+      { rss = "/index.xml" },
+      # Add more here; Blowfish supports email, mastodon, twitter, linkedin,
+      # x-twitter, bluesky, etc. See languages.en.toml in the theme for the
+      # full list of supported keys.
+    ]

@@ -1,0 +1,25 @@
+# -- Main Menu --
+# The main menu is displayed in the header at the top of the page.
+
+[[main]]
+  name = "Blog"
+  pageRef = "posts"
+  weight = 10
+
+[[main]]
+  name = "About"
+  pageRef = "about"
+  weight = 20
+
+# -- Footer Menu --
+# The footer menu is displayed at the bottom of the page.
+
+[[footer]]
+  name = "Blog"
+  pageRef = "posts"
+  weight = 10
+
+[[footer]]
+  name = "About"
+  pageRef = "about"
+  weight = 20

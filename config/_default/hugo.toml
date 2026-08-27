@@ -1,0 +1,69 @@
+# -- Site Configuration --
+# Refer to the theme docs for more details about each of these parameters.
+# https://blowfish.page/docs/getting-started/
+
+theme = "blowfish"
+baseURL = "https://vitorcoffee.github.io/"
+
+# When deploying to https://<user>.github.io, leave baseURL with no path.
+# If you later move to a Project Pages site, change this to
+# "https://<user>.github.io/<repo>/".
+
+defaultContentLanguage = "en"
+enableRobotsTXT = true
+summaryLength = 0
+
+buildDrafts = false
+buildFuture = false
+enableEmoji = true
+
+# mainSections controls which top-level content sections appear on the
+# homepage. With the Blowfish "card" layout, this decides what shows up
+# in the homepage grid.
+mainSections = ["posts"]
+
+# googleAnalytics = "G-XXXXXXXXX"
+
+[pagination]
+  pagerSize = 100
+
+[imaging]
+  anchor = 'Center'
+
+[taxonomies]
+  tag = "tags"
+  category = "categories"
+  author = "authors"
+  series = "series"
+
+[sitemap]
+  changefreq = 'daily'
+  filename = 'sitemap.xml'
+  priority = 0.5
+
+[outputs]
+  home = ["HTML", "RSS", "JSON"]
+
+[related]
+  threshold = 0
+  toLower = false
+
+  [[related.indices]]
+    name = "tags"
+    weight = 100
+
+  [[related.indices]]
+    name = "categories"
+    weight = 100
+
+  [[related.indices]]
+    name = "series"
+    weight = 50
+
+  [[related.indices]]
+    name = "authors"
+    weight = 20
+
+  [[related.indices]]
+    name = "date"
+    weight = 10

@@ -1,0 +1,72 @@
+name: Deploy Hugo site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Avoid concurrent deploys clobbering each other.
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+# Grant the workflow permission to push to the Pages branch and to mint
+# the OIDC token that actions/deploy-pages uses to talk to the Pages
+# deployment API. Without id-token: write, the deploy job errors with
+# "Ensure GITHUB_TOKEN has permission 'id-token: write'".
+permissions:
+  contents: write
+  id-token: write
+  pages: write
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      HUGO_CACHEDIR: /tmp/hugo_cache
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup Node (Node 24)
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Setup Hugo (extended, latest)
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: "latest"
+          extended: true
+
+      - name: Cache Hugo modules
+        uses: actions/cache@v5
+        with:
+          path: /tmp/hugo_cache
+          key: ${{ runner.os }}-hugomod-${{ hashFiles('**/go.sum', '**/go.mod') }}
+          restore-keys: |
+            ${{ runner.os }}-hugomod-
+
+      - name: Build site
+        run: hugo --minify --gc --cleanDestinationDir
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
