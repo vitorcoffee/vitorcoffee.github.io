@@ -1,0 +1,12 @@
+/* 提高页面透明度，让底层流星 Canvas 背景透出（Blowfish 会自动合并此文件） */
+body {
+  background-color: rgba(var(--color-neutral), 0.4) !important;
+}
+html.dark body {
+  background-color: rgba(var(--color-neutral-800), 0.4) !important;
+}
+
+/* 首页文章卡片也做半透明处理，保持整体通透 */
+#main-content article {
+  background-color: transparent !important;
+}

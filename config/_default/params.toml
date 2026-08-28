@@ -24,7 +24,7 @@ disableImageOptimization = false
 disableImageOptimizationMD = false
 disableTextInHeader = false
 
-defaultBackgroundImage = "images/home.jpg"
+# defaultBackgroundImage = "images/home.jpg"
 backgroundCanvas = true
 # defaultFeaturedImage = "IMAGE.jpg"
 # defaultSocialImage = "/android-chrome-512x512.png"
@@ -55,7 +55,7 @@ forgejoDefaultServer = "https://v11.next.forgejo.org"
 
 [homepage]
   layout = "background" # valid options: page, profile, hero, card, background, landing, custom
-  homepageImage = "images/home.jpg"
+  # homepageImage = "images/home.jpg"
   showRecent = true
   showRecentItems = 6
   showMoreLink = true
