@@ -1,12 +1,12 @@
-/* 提高页面透明度，让底层流星 Canvas 背景透出（Blowfish 会自动合并此文件） */
+/* 页面完全透明，让底层流星 Canvas 的渐变天空直接透出（Blowfish 会自动合并此文件） */
 body {
-  background-color: rgba(var(--color-neutral), 0.4) !important;
+  background-color: transparent !important;
 }
 html.dark body {
-  background-color: rgba(var(--color-neutral-800), 0.4) !important;
+  background-color: transparent !important;
 }
 
-/* 首页文章卡片也做半透明处理，保持整体通透 */
+/* 首页文章卡片也做透明处理，保持整体通透 */
 #main-content article {
   background-color: transparent !important;
 }

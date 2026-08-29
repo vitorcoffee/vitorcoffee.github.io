@@ -10,18 +10,20 @@
   'use strict';
 
   // ---------- 可调参数 ----------
-  var ALPHA = 0.35;             // 流星最大透明度（半透明，避免干扰阅读）
+  var ALPHA = 0.85;             // 流星最大透明度（白痕在夜空上需清晰可见）
   var SPEED_MIN = 60;           // 最慢速度（像素/秒）
   var SPEED_MAX = 110;          // 最快速度（像素/秒）
-  var TRAIL_MIN = 240;          // 最短尾迹（像素）
-  var TRAIL_MAX = 440;          // 最长尾迹（像素）
-  var ANGLE_MIN = 0.35;         // 最小划过角度（弧度，约 20°，向右下）
-  var ANGLE_MAX = 0.7;          // 最大划过角度（弧度，约 40°）
+  var TRAIL_MIN = 50;           // 最短尾迹（像素）
+  var TRAIL_MAX = 80;           // 最长尾迹（像素）
+  var ANGLE_MIN = 0.5;          // 最小划过角度（弧度，约 30°，向右下）
+  var ANGLE_MAX = 1.15;         // 最大划过角度（弧度，约 65°）
   var SPAWN_CHANCE = 0.02;      // 每帧生成流星的概率（越大流星越频繁）
-  var MAX_METEORS = 5;          // 同屏最大流星数
-  var LINE_WIDTH = 4;           // 流星线宽
-  var DARK_RGB = '161, 161, 170';   // 暗色模式：低饱和度浅灰 (neutral-400 附近)
-  var LIGHT_RGB = '82, 82, 91';     // 亮色模式：低饱和度深灰 (neutral-500 附近)
+  var MAX_METEORS = 9;          // 同屏最大流星数（9-10 颗）
+  var LINE_WIDTH = 1.3;         // 流星线宽基础值（CSS 像素；绘制时按 dpr 缩放）
+  // 天空渐变：暗色为参考图的深蓝紫夜空，亮色为浅色天空版
+  var DARK_SKY = ['#3a3da6', '#5c60c2', '#8b90d8'];
+  var LIGHT_SKY = ['#dce6f9', '#e9eefb', '#f4f6fd'];
+  var METEOR_RGB = '255, 255, 255'; // 流星统一为白色
 
   // ---------- 画布创建：绝对定位在页面最底层，不遮挡内容 ----------
   var canvas = document.createElement('canvas');
@@ -39,7 +41,7 @@
 
   var W = 0, H = 0, dpr = 1;
   var meteors = [];    // 当前活跃的流星
-  var rgb = LIGHT_RGB;
+  var sky = LIGHT_SKY;
 
   function rand(min, max) { return min + Math.random() * (max - min); }
 
@@ -53,11 +55,11 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  // ---------- 主题颜色适配：读 html 元素的 .dark 类 ----------
+  // ---------- 天空渐变：主题切换时更换配色 ----------
   function updateThemeColor() {
-    rgb = LIGHT_RGB;
+    sky = LIGHT_SKY;
     if (document.documentElement.classList.contains('dark')) {
-      rgb = DARK_RGB;
+      sky = DARK_SKY;
     }
   }
   // 监听主题切换（Blowfish 切换时会增删 html 上的 .dark 类）
@@ -76,29 +78,43 @@
       vx: Math.cos(angle),
       vy: Math.sin(angle),
       speed: rand(SPEED_MIN, SPEED_MAX),
-      trail: rand(TRAIL_MIN, TRAIL_MAX),
+      trail: rand(TRAIL_MIN, TRAIL_MAX), // 极短尾迹，仅作细微划痕
       alpha: 0 // 淡入后到达最大透明度
     };
   }
 
-  // 画出一颗流星：头部亮、尾部渐隐的柔和线段
+  // 画出一颗流星：白色细线（极短划痕）
   function drawMeteor(m) {
     var tailX = m.x - m.vx * m.trail;
     var tailY = m.y - m.vy * m.trail;
     var grad = ctx.createLinearGradient(tailX, tailY, m.x, m.y);
-    grad.addColorStop(0, 'rgba(' + rgb + ', 0)');
-    grad.addColorStop(1, 'rgba(' + rgb + ', ' + m.alpha.toFixed(4) + ')');
+    grad.addColorStop(0, 'rgba(' + METEOR_RGB + ', 0)');
+    grad.addColorStop(1, 'rgba(' + METEOR_RGB + ', ' + m.alpha.toFixed(4) + ')');
     ctx.beginPath();
     ctx.moveTo(tailX, tailY);
     ctx.lineTo(m.x, m.y);
     ctx.strokeStyle = grad;
-    ctx.lineWidth = LINE_WIDTH;
+    ctx.lineWidth = LINE_WIDTH * dpr; // dpr 此时已被 resize() 赋值
     ctx.lineCap = 'round';
     ctx.stroke();
   }
 
   // ---------- 主循环：基于时间增量，速度与帧率无关 ----------
   var lastTime = performance.now();
+  var skyGrad = null;
+  var skyKey = '';
+
+  function skyGradient() {
+    var key = sky.join() + '|' + H;
+    if (skyKey !== key) {
+      skyKey = key;
+      skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+      skyGrad.addColorStop(0, sky[0]);
+      skyGrad.addColorStop(0.55, sky[1]);
+      skyGrad.addColorStop(1, sky[2]);
+    }
+    return skyGrad;
+  }
 
   function tick(now) {
     var dt = Math.min((now - lastTime) / 1000, 0.05); // 秒；限幅防切页后跳变
@@ -109,21 +125,22 @@
       meteors.push(newMeteor());
     }
 
-    // 每帧整体清空重绘（流星数量极少，开销可忽略）
-    ctx.clearRect(0, 0, W, H);
+    // 每帧先铺天空渐变，再重绘流星（流星数量极少，开销可忽略）
+    ctx.fillStyle = skyGradient();
+    ctx.fillRect(0, 0, W, H);
 
     for (var i = meteors.length - 1; i >= 0; i--) {
       var m = meteors[i];
       m.x += m.vx * m.speed * dt;
       m.y += m.vy * m.speed * dt;
-      // 尾部进入画面后淡入到目标透明度，进入后半程逐渐淡出，柔和无闪烁
+      // 淡入淡出：进入画面后淡入到目标透明度，离开后半程逐渐淡出，柔和无闪烁
       var dist = m.x * m.vx + m.y * m.vy; // 沿运动方向的投影距离
       var total = W * m.vx + H * m.vy;
       var t = Math.min(1, Math.max(0, dist / total)); // 0 → 1 的行程进度
       m.alpha = ALPHA * Math.min(1, t * 8) * Math.min(1, (1 - t) * 4);
 
-      // 头部完全离开画面（含尾迹余量）后移除
-      if (m.x - m.vx * m.trail > W + 50 || m.y - m.vy * m.trail > H + 50) {
+      // 头部完全离开画面后移除
+      if (m.x > W + 50 || m.y > H + 50) {
         meteors.splice(i, 1);
         continue;
       }
